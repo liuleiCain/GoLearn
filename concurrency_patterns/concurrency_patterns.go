@@ -51,14 +51,18 @@ func WorkerPoolPattern() {
 func PipelinePattern() {
 	fmt.Println("=== Pipeline模式 ===")
 
+	// generator: 生成器函数，将一组整数发送到通道
+	// done: 取消信号通道，用于优雅关闭
+	// nums: 可变参数，要发送的整数列表
+	// 返回: 只读整数通道，用于接收生成的数字
 	generator := func(done <-chan struct{}, nums ...int) <-chan int {
 		out := make(chan int)
 		go func() {
-			defer close(out)
+			defer close(out) // 确保goroutine退出时关闭通道
 			for _, n := range nums {
 				select {
-				case out <- n:
-				case <-done:
+				case out <- n: // 将数字发送到输出通道
+				case <-done: // 收到取消信号，立即退出
 					return
 				}
 			}
@@ -66,14 +70,18 @@ func PipelinePattern() {
 		return out
 	}
 
+	// square: 平方函数，计算输入数字的平方
+	// done: 取消信号通道
+	// in: 输入通道，接收要处理的数字
+	// 返回: 只读整数通道，输出平方后的结果
 	square := func(done <-chan struct{}, in <-chan int) <-chan int {
 		out := make(chan int)
 		go func() {
 			defer close(out)
-			for n := range in {
+			for n := range in { // 从输入通道读取数据
 				select {
-				case out <- n * n:
-				case <-done:
+				case out <- n * n: // 发送平方结果
+				case <-done: // 收到取消信号，立即退出
 					return
 				}
 			}
@@ -81,14 +89,18 @@ func PipelinePattern() {
 		return out
 	}
 
+	// double: 双倍函数，将输入数字乘以2
+	// done: 取消信号通道
+	// in: 输入通道，接收要处理的数字
+	// 返回: 只读整数通道，输出双倍后的结果
 	double := func(done <-chan struct{}, in <-chan int) <-chan int {
 		out := make(chan int)
 		go func() {
 			defer close(out)
 			for n := range in {
 				select {
-				case out <- n * 2:
-				case <-done:
+				case out <- n * 2: // 发送双倍结果
+				case <-done: // 收到取消信号，立即退出
 					return
 				}
 			}
@@ -96,13 +108,17 @@ func PipelinePattern() {
 		return out
 	}
 
+	// 创建done通道，用于发送取消信号
 	done := make(chan struct{})
-	defer close(done)
+	defer close(done) // 函数退出时关闭done，通知所有goroutine停止
 
+	// 构建Pipeline流水线: generator -> square -> double
+	// 数据流向: 1,2,3,4,5 -> 1,4,9,16,25 -> 2,8,18,32,50
 	nums := generator(done, 1, 2, 3, 4, 5)
 	squared := square(done, nums)
 	doubled := double(done, squared)
 
+	// 从最终输出通道读取结果
 	for result := range doubled {
 		fmt.Printf("Pipeline结果: %d\n", result)
 	}
@@ -111,45 +127,57 @@ func PipelinePattern() {
 func FanOutFanIn() {
 	fmt.Println("=== Fan-out/Fan-in模式 ===")
 
+	// producer: 生产者函数，将一组整数发送到通道
+	// nums: 可变参数，要发送的整数列表
+	// 返回: 只读整数通道，用于接收生成的数字
 	producer := func(nums ...int) <-chan int {
 		out := make(chan int)
 		go func() {
-			defer close(out)
+			defer close(out) // 确保goroutine退出时关闭通道
 			for _, n := range nums {
-				out <- n
+				out <- n // 将数字发送到输出通道
 			}
 		}()
 		return out
 	}
 
+	// worker: 工作者函数，处理输入的数字并返回格式化结果
+	// name: 工作者名称，用于标识输出
+	// in: 输入通道，接收要处理的数字
+	// 返回: 只读字符串通道，输出处理结果
 	worker := func(name string, in <-chan int) <-chan string {
 		out := make(chan string)
 		go func() {
 			defer close(out)
-			for n := range in {
-				time.Sleep(50 * time.Millisecond)
-				out <- fmt.Sprintf("%s: %d -> %d", name, n, n*n)
+			for n := range in { // 从输入通道读取数据
+				time.Sleep(50 * time.Millisecond)                // 模拟处理耗时
+				out <- fmt.Sprintf("%s: %d -> %d", name, n, n*n) // 发送格式化结果
 			}
 		}()
 		return out
 	}
 
+	// merger: 合并器函数，将多个通道的数据合并到一个通道
+	// channels: 可变参数，多个只读字符串通道
+	// 返回: 只读字符串通道，输出合并后的所有数据
 	merger := func(channels ...<-chan string) <-chan string {
 		var wg sync.WaitGroup
 		out := make(chan string)
 
+		// output: 从单个通道读取数据并转发到输出通道
 		output := func(c <-chan string) {
 			defer wg.Done()
 			for s := range c {
-				out <- s
+				out <- s // 将数据转发到合并输出通道
 			}
 		}
 
-		wg.Add(len(channels))
+		wg.Add(len(channels)) // 设置等待计数为通道数量
 		for _, c := range channels {
-			go output(c)
+			go output(c) // 为每个输入通道启动一个goroutine
 		}
 
+		// 等待所有goroutine完成后关闭输出通道
 		go func() {
 			wg.Wait()
 			close(out)
