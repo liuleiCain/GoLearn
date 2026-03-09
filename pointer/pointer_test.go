@@ -30,8 +30,12 @@ func TestEscapeAnalysis(t *testing.T) {
 	EscapeAnalysis()
 }
 
-func TestPointerPerformance(t *testing.T) {
-	PointerPerformance()
+func TestPointerPerformanceTime(t *testing.T) {
+	PointerPerformanceTime()
+}
+
+func TestPointerPerformanceMemory(t *testing.T) {
+	PointerPerformanceMemory()
 }
 
 func TestPointerSafety(t *testing.T) {

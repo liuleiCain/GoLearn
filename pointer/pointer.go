@@ -2,6 +2,7 @@ package pointer
 
 import (
 	"fmt"
+	"runtime"
 	"time"
 	"unsafe"
 )
@@ -203,8 +204,8 @@ func EscapeAnalysis() {
 
 var globalSum int
 
-func PointerPerformance() {
-	fmt.Println("=== 指针性能考量 ===")
+func PointerPerformanceTime() {
+	fmt.Println("=== 指针时间性能测试 ===")
 
 	type SmallStruct struct {
 		a, b int
@@ -214,7 +215,8 @@ func PointerPerformance() {
 		data [10000]int
 	}
 
-	fmt.Println("\n--- 测试1: 小结构体复制开销 ---")
+	fmt.Println("\n--- 测试1: 小结构体时间开销 ---")
+	fmt.Println("小结构体(16字节): 2个int字段")
 	small := SmallStruct{a: 1, b: 2}
 
 	smallValuePass := func(s SmallStruct) int {
@@ -224,94 +226,202 @@ func PointerPerformance() {
 		return s.a + s.b
 	}
 
+	const iterations = 1000000
 	start := time.Now()
-	for i := 0; i < 100000000; i++ {
+	for i := 0; i < iterations; i++ {
 		globalSum += smallValuePass(small)
 	}
 	valueDuration := time.Since(start)
 
 	start = time.Now()
-	for i := 0; i < 100000000; i++ {
+	for i := 0; i < iterations; i++ {
 		globalSum += smallPointerPass(&small)
 	}
 	pointerDuration := time.Since(start)
 
-	fmt.Printf("小结构体(16字节) - 值传递: %v\n", valueDuration)
-	fmt.Printf("小结构体(16字节) - 指针传递: %v\n", pointerDuration)
-	if valueDuration < pointerDuration {
-		fmt.Println("结论: 小结构体值传递更快 (避免指针解引用开销)")
+	fmt.Printf("  值传递:   %v (%.2f ns/op)\n", valueDuration, float64(valueDuration.Nanoseconds())/float64(iterations))
+	fmt.Printf("  指针传递: %v (%.2f ns/op)\n", pointerDuration, float64(pointerDuration.Nanoseconds())/float64(iterations))
+	fmt.Println()
+	if valueDuration <= pointerDuration {
+		fmt.Println("结论: 小结构体值传递更快或相当")
+		fmt.Println("原因: 复制16字节开销很小，指针解引用有额外开销")
 	} else {
 		fmt.Println("结论: 小结构体指针传递更快")
 	}
 
-	fmt.Println("\n--- 测试2: 大结构体复制开销 ---")
+	fmt.Println("\n--- 测试2: 大结构体时间开销 ---")
+	fmt.Println("大结构体(80KB): 10000个int字段")
 	large := LargeStruct{}
 	for i := range large.data {
 		large.data[i] = i
 	}
 
-	largeValuePass = func(s LargeStruct) int {
+	largeValuePass := func(s LargeStruct) int {
 		result := 0
-		for j := 0; j < len(s.data); j += 1000 {
+		for j := 0; j < len(s.data); j++ {
 			result += s.data[j]
 		}
 		return result
 	}
-	largePointerPass = func(s *LargeStruct) int {
+	largePointerPass := func(s *LargeStruct) int {
 		result := 0
-		for j := 0; j < len(s.data); j += 1000 {
+		for j := 0; j < len(s.data); j++ {
 			result += s.data[j]
 		}
 		return result
 	}
 
+	const largeIterations = 10000
 	start = time.Now()
-	for i := 0; i < 10000; i++ {
+	globalSum = 0
+	for i := 0; i < largeIterations; i++ {
 		globalSum += largeValuePass(large)
 	}
 	valueDuration = time.Since(start)
 
 	start = time.Now()
-	for i := 0; i < 10000; i++ {
+	globalSum = 0
+	for i := 0; i < largeIterations; i++ {
 		globalSum += largePointerPass(&large)
 	}
 	pointerDuration = time.Since(start)
 
-	fmt.Printf("大结构体(80KB) - 值传递: %v\n", valueDuration)
-	fmt.Printf("大结构体(80KB) - 指针传递: %v\n", pointerDuration)
+	fmt.Printf("  值传递:   %v (%.2f μs/op)\n", valueDuration, float64(valueDuration.Microseconds())/float64(largeIterations))
+	fmt.Printf("  指针传递: %v (%.2f μs/op)\n", pointerDuration, float64(pointerDuration.Microseconds())/float64(largeIterations))
+	fmt.Println()
 	if pointerDuration < valueDuration {
-		fmt.Println("结论: 大结构体指针传递更快 (避免复制80KB数据)")
-		if pointerDuration > 0 {
-			fmt.Printf("性能提升: %.1fx\n", float64(valueDuration)/float64(pointerDuration))
-		}
+		speedup := float64(valueDuration) / float64(pointerDuration)
+		fmt.Printf("结论: 大结构体指针传递快 %.1fx\n", speedup)
+		fmt.Println("原因: 避免每次调用复制80KB数据")
 	} else {
 		fmt.Println("结论: 大结构体值传递更快")
 	}
 
-	fmt.Println("\n--- 测试3: 内存分配对比 ---")
-	fmt.Println("假设需要存储1000个结构体:")
-	fmt.Println()
-	fmt.Println("值传递方式:")
-	fmt.Printf("  - 存储1000个大结构体: 80KB × 1000 = %d MB\n", 80)
-	fmt.Println("  - 每个元素独立存储完整数据")
-	fmt.Println()
-	fmt.Println("指针传递方式:")
-	fmt.Printf("  - 存储1000个指针: 8字节 × 1000 = %d KB\n", 8)
-	fmt.Println("  - 所有指针指向同一份数据")
-	fmt.Println()
-	fmt.Println("内存节省: 约99.99%")
+	fmt.Println("\n--- 时间性能总结 ---")
+	fmt.Println("┌─────────────┬──────────┬──────────┐")
+	fmt.Println("│ 结构体大小  │ 推荐方式 │ 原因     │")
+	fmt.Println("├─────────────┼──────────┼──────────┤")
+	fmt.Println("│ <= 32字节   │ 值传递   │ 复制快   │")
+	fmt.Println("│ > 32字节    │ 指针传递 │ 避免复制 │")
+	fmt.Println("│ > 1KB       │ 指针传递 │ 大幅提升 │")
+	fmt.Println("└─────────────┴──────────┴──────────┘")
+}
 
-	fmt.Println("\n--- 测试4: 结构体大小阈值 ---")
-	fmt.Println("结构体大小对性能的影响:")
-	fmt.Println("- 1-3个基本类型字段: 值传递通常更快")
-	fmt.Println("- 超过32字节: 考虑指针传递")
-	fmt.Println("- 超过1KB: 强烈建议指针传递")
+func PointerPerformanceMemory() {
+	fmt.Println("=== 指针内存性能测试 ===")
 
-	fmt.Println("\n性能建议:")
-	fmt.Println("1. 小结构体(<=32字节): 优先值传递")
-	fmt.Println("2. 大结构体(>32字节): 使用指针传递")
-	fmt.Println("3. 需要修改原值: 必须使用指针")
-	fmt.Println("4. 一致性: 同类型的所有方法使用相同的接收者类型")
+	type LargeStruct struct {
+		data [10000]int
+	}
+
+	fmt.Println("\n--- 测试1: 切片存储内存对比 ---")
+	fmt.Println("场景: 存储1000个元素")
+
+	fmt.Println("\n方式A: 值类型切片 []LargeStruct")
+	fmt.Println("  每个元素80KB，需要完整存储")
+	valueSlice := make([]LargeStruct, 1000)
+	for i := range valueSlice {
+		valueSlice[i].data[0] = i
+	}
+
+	fmt.Println("\n方式B: 指针类型切片 []*LargeStruct")
+	fmt.Println("  每个指针8字节，指向共享数据")
+	pointerSlice := make([]*LargeStruct, 1000)
+	sharedData := &LargeStruct{}
+	for i := range pointerSlice {
+		pointerSlice[i] = sharedData
+	}
+
+	fmt.Println("\n内存占用计算:")
+	valueMemory := 80 * 1000
+	pointerMemory := 8 * 1000
+	fmt.Printf("  值类型切片:   80KB × 1000 = %d KB = %.1f MB\n", valueMemory, float64(valueMemory)/1024)
+	fmt.Printf("  指针类型切片: 8字节 × 1000 = %d KB\n", pointerMemory/1024)
+	fmt.Printf("  内存节省:     %.2f%%\n", float64(valueMemory-pointerMemory)/float64(valueMemory)*100)
+
+	fmt.Println("\n--- 测试2: 函数调用内存分配 ---")
+	fmt.Println("场景: 函数内部创建并返回结构体")
+
+	fmt.Println("\n方式A: 返回值类型")
+	fmt.Println("  每次调用在栈上分配，不产生堆内存")
+	returnValue := func() LargeStruct {
+		var s LargeStruct
+		s.data[0] = 1
+		return s
+	}
+
+	fmt.Println("\n方式B: 返回指针类型")
+	fmt.Println("  每次调用在堆上分配，产生堆内存")
+	returnPointer := func() *LargeStruct {
+		s := &LargeStruct{}
+		s.data[0] = 1
+		return s
+	}
+
+	var m1, m2 runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&m1)
+	valueStartAlloc := m1.TotalAlloc
+
+	for i := 0; i < 100; i++ {
+		_ = returnValue()
+	}
+
+	runtime.ReadMemStats(&m2)
+	valueTotalAlloc := m2.TotalAlloc - valueStartAlloc
+
+	runtime.GC()
+	runtime.ReadMemStats(&m1)
+	pointerStartAlloc := m1.TotalAlloc
+
+	for i := 0; i < 100; i++ {
+		_ = returnPointer()
+	}
+
+	runtime.ReadMemStats(&m2)
+	pointerTotalAlloc := m2.TotalAlloc - pointerStartAlloc
+
+	fmt.Printf("\n堆内存分配对比 (100次调用):\n")
+	fmt.Printf("  返回值类型:   %d bytes\n", valueTotalAlloc)
+	fmt.Printf("  返回指针类型: %d bytes\n", pointerTotalAlloc)
+	if pointerTotalAlloc > valueTotalAlloc {
+		fmt.Printf("  指针方式多分配: %d bytes (%.1f KB)\n", pointerTotalAlloc-valueTotalAlloc, float64(pointerTotalAlloc-valueTotalAlloc)/1024)
+	}
+
+	fmt.Println("\n--- 测试3: 结构体大小与内存对齐 ---")
+	fmt.Println("Go编译器会进行内存对齐优化")
+
+	type Aligned1 struct {
+		a bool
+		b int64
+		c bool
+	}
+
+	type Aligned2 struct {
+		b int64
+		a bool
+		c bool
+	}
+
+	fmt.Printf("  Aligned1 (bool, int64, bool): %d 字节\n", unsafe.Sizeof(Aligned1{}))
+	fmt.Printf("  Aligned2 (int64, bool, bool): %d 字节\n", unsafe.Sizeof(Aligned2{}))
+	fmt.Println("  相同字段不同顺序，大小不同！")
+
+	fmt.Println("\n--- 内存性能总结 ---")
+	fmt.Println("┌─────────────────┬────────────┬────────────────┐")
+	fmt.Println("│ 场景            │ 推荐方式   │ 原因           │")
+	fmt.Println("├─────────────────┼────────────┼────────────────┤")
+	fmt.Println("│ 存储大量元素    │ 指针切片   │ 节省内存       │")
+	fmt.Println("│ 函数内创建返回  │ 值返回     │ 避免堆分配     │")
+	fmt.Println("│ 共享数据        │ 指针       │ 避免重复存储   │")
+	fmt.Println("│ 只读遍历        │ 值类型     │ 缓存友好       │")
+	fmt.Println("└─────────────────┴────────────┴────────────────┘")
+
+	fmt.Println("\n内存优化建议:")
+	fmt.Println("1. 大数据集合使用指针切片")
+	fmt.Println("2. 频繁创建的小对象用值返回")
+	fmt.Println("3. 注意结构体字段顺序对齐")
+	fmt.Println("4. 使用 go build -gcflags='-m' 查看逃逸分析")
 }
 
 func PointerSafety() {
