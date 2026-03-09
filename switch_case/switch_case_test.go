@@ -2,28 +2,38 @@ package switch_case
 
 import "testing"
 
-func TestSwitchCase(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{"测试SwitchCase"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			SwitchCase()
-		})
-	}
+func TestBasicSwitch(t *testing.T) {
+	BasicSwitch()
 }
 
-func TestSwitchCaseMulti(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{"测试SwitchCase多个条件执行同样操作"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			SwitchCaseMulti()
-		})
-	}
+func TestFallthroughDemo(t *testing.T) {
+	FallthroughDemo()
+}
+
+func TestMultiCaseDemo(t *testing.T) {
+	MultiCaseDemo()
+}
+
+func TestNoExpressionSwitch(t *testing.T) {
+	NoExpressionSwitch()
+}
+
+func TestTypeSwitch(t *testing.T) {
+	TypeSwitch()
+}
+
+func TestSwitchBreak(t *testing.T) {
+	SwitchBreak()
+}
+
+func TestSwitchInFor(t *testing.T) {
+	SwitchInFor()
+}
+
+func TestSwitchInitialization(t *testing.T) {
+	SwitchInitialization()
+}
+
+func TestSwitchPitfalls(t *testing.T) {
+	SwitchPitfalls()
 }

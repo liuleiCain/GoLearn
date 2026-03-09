@@ -1,42 +1,43 @@
-package for_range
+package _break
 
 import "testing"
 
+func TestBasicBreak(t *testing.T) {
+	BasicBreak()
+}
+
+func TestBreakInSwitch(t *testing.T) {
+	BreakInSwitch()
+}
+
+func TestBreakVsContinue(t *testing.T) {
+	BreakVsContinue()
+}
+
 func TestBreakForSelect(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{"测试for-select的break"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			BreakForSelect()
-		})
-	}
+	BreakForSelect()
 }
 
 func TestBreakForSelectLabel(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{"测试label的break"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			BreakForSelectLabel()
-		})
-	}
+	BreakForSelectLabel()
 }
 
-func TestBreakForLabel(t *testing.T) {
-	tests := []struct {
-		name string
-	}{
-		{"测试多重循环label的break"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			BreakForLabel()
-		})
-	}
+func TestBreakNestedLoop(t *testing.T) {
+	BreakNestedLoop()
+}
+
+func TestBreakWithLabelNames(t *testing.T) {
+	BreakWithLabelNames()
+}
+
+func TestBreakVsReturn(t *testing.T) {
+	BreakVsReturn()
+}
+
+func TestInfiniteLoopBreak(t *testing.T) {
+	InfiniteLoopBreak()
+}
+
+func TestBreakPitfalls(t *testing.T) {
+	BreakPitfalls()
 }
