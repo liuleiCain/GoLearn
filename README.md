@@ -10,9 +10,9 @@
 
 | 模块 | 内容 | 难度 | 文档 |
 |------|------|------|------|
-| [switch_case](./switch_case) | switch语句和fallthrough | ⭐ | [README](./switch_case/switch_case.go) |
+| [switch_case](./switch_case) | switch语句和fallthrough | ⭐ | [README](./switch_case/README.md) |
 | [map](./map) | map初始化、遍历顺序 | ⭐ | [README](./map/README.md) |
-| [json](./json) | JSON序列化与反序列化 | ⭐ | - |
+| [json](./json) | JSON序列化与反序列化 | ⭐ | [README](./json/README.md) |
 | [slice](./slice) | 切片原理、扩容机制、append、copy | ⭐⭐ | [README](./slice/README.md) |
 | [interface](./interface) | 接口定义、多态、空接口、类型断言 | ⭐⭐ | [README](./interface/README.md) |
 
@@ -36,7 +36,7 @@
 | [receiver](./receiver) | 值接收者vs指针接收者 | ⭐⭐ | [README](./receiver/README.md) |
 | [closure](./closure) | 闭包原理、变量捕获、循环陷阱 | ⭐⭐ | [README](./closure/README.md) |
 | [pointer](./pointer) | 指针基础、逃逸分析、性能考量 | ⭐⭐ | [README](./pointer/README.md) |
-| [init_func](./init_func) | init函数执行顺序 | ⭐⭐ | - |
+| [init_func](./init_func) | init函数执行顺序 | ⭐⭐ | [README](./init_func/README.md) |
 
 ### 高级阶段 - 现代特性
 
