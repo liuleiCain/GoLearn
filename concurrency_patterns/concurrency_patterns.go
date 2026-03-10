@@ -51,10 +51,10 @@ func WorkerPoolPattern() {
 func PipelinePattern() {
 	fmt.Println("=== Pipeline模式 ===")
 
-	// generator: 生成器函数，将一组整数发送到通道
-	// done: 取消信号通道，用于优雅关闭
-	// nums: 可变参数，要发送的整数列表
-	// 返回: 只读整数通道，用于接收生成的数字
+	// generator 生成器函数，将一组整数发送到通道
+	// done 取消信号通道，用于优雅关闭
+	// nums 可变参数，要发送的整数列表
+	// 返回 只读整数通道，用于接收生成的数字
 	generator := func(done <-chan struct{}, nums ...int) <-chan int {
 		out := make(chan int)
 		go func() {
@@ -70,10 +70,10 @@ func PipelinePattern() {
 		return out
 	}
 
-	// square: 平方函数，计算输入数字的平方
-	// done: 取消信号通道
-	// in: 输入通道，接收要处理的数字
-	// 返回: 只读整数通道，输出平方后的结果
+	// square 平方函数，计算输入数字的平方
+	// done 取消信号通道
+	// in 输入通道，接收要处理的数字
+	// 返回 只读整数通道，输出平方后的结果
 	square := func(done <-chan struct{}, in <-chan int) <-chan int {
 		out := make(chan int)
 		go func() {
@@ -89,10 +89,10 @@ func PipelinePattern() {
 		return out
 	}
 
-	// double: 双倍函数，将输入数字乘以2
-	// done: 取消信号通道
-	// in: 输入通道，接收要处理的数字
-	// 返回: 只读整数通道，输出双倍后的结果
+	// double 双倍函数，将输入数字乘以2
+	// done 取消信号通道
+	// in 输入通道，接收要处理的数字
+	// 返回 只读整数通道，输出双倍后的结果
 	double := func(done <-chan struct{}, in <-chan int) <-chan int {
 		out := make(chan int)
 		go func() {
@@ -112,8 +112,8 @@ func PipelinePattern() {
 	done := make(chan struct{})
 	defer close(done) // 函数退出时关闭done，通知所有goroutine停止
 
-	// 构建Pipeline流水线: generator -> square -> double
-	// 数据流向: 1,2,3,4,5 -> 1,4,9,16,25 -> 2,8,18,32,50
+	// 构建Pipeline流水线 generator -> square -> double
+	// 数据流向 1,2,3,4,5 -> 1,4,9,16,25 -> 2,8,18,32,50
 	nums := generator(done, 1, 2, 3, 4, 5)
 	squared := square(done, nums)
 	doubled := double(done, squared)
@@ -127,9 +127,9 @@ func PipelinePattern() {
 func FanOutFanIn() {
 	fmt.Println("=== Fan-out/Fan-in模式 ===")
 
-	// producer: 生产者函数，将一组整数发送到通道
-	// nums: 可变参数，要发送的整数列表
-	// 返回: 只读整数通道，用于接收生成的数字
+	// producer 生产者函数，将一组整数发送到通道
+	// nums 可变参数，要发送的整数列表
+	// 返回 只读整数通道，用于接收生成的数字
 	producer := func(nums ...int) <-chan int {
 		out := make(chan int)
 		go func() {
@@ -141,10 +141,10 @@ func FanOutFanIn() {
 		return out
 	}
 
-	// worker: 工作者函数，处理输入的数字并返回格式化结果
-	// name: 工作者名称，用于标识输出
-	// in: 输入通道，接收要处理的数字
-	// 返回: 只读字符串通道，输出处理结果
+	// worker 工作者函数，处理输入的数字并返回格式化结果
+	// name 工作者名称，用于标识输出
+	// in 输入通道，接收要处理的数字
+	// 返回 只读字符串通道，输出处理结果
 	worker := func(name string, in <-chan int) <-chan string {
 		out := make(chan string)
 		go func() {
@@ -157,9 +157,9 @@ func FanOutFanIn() {
 		return out
 	}
 
-	// merger: 合并器函数，将多个通道的数据合并到一个通道
-	// channels: 可变参数，多个只读字符串通道
-	// 返回: 只读字符串通道，输出合并后的所有数据
+	// merger 合并器函数，将多个通道的数据合并到一个通道
+	// channels 可变参数，多个只读字符串通道
+	// 返回 只读字符串通道，输出合并后的所有数据
 	merger := func(channels ...<-chan string) <-chan string {
 		var wg sync.WaitGroup
 		out := make(chan string)
