@@ -50,10 +50,6 @@ func TestContextTimeout(t *testing.T) {
 	ContextTimeout()
 }
 
-func TestContextValue(t *testing.T) {
-	ContextValue()
-}
-
 func TestWorkerPool(t *testing.T) {
 	WorkerPool()
 }
@@ -80,10 +76,6 @@ func TestGoroutineLocal(t *testing.T) {
 
 func TestSelectDemo(t *testing.T) {
 	SelectDemo()
-}
-
-func TestNonBlockingSelect(t *testing.T) {
-	NonBlockingSelect()
 }
 
 func TestTimerDemo(t *testing.T) {

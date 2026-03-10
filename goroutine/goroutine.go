@@ -299,27 +299,6 @@ func ContextTimeout() {
 	}
 }
 
-// ContextValue 演示context传递值
-func ContextValue() {
-	fmt.Println("=== Context传值示例 ===")
-
-	type key string
-	ctx := context.WithValue(context.Background(), key("userID"), "user123")
-	ctx = context.WithValue(ctx, key("requestID"), "req456")
-
-	// 在goroutine中获取值
-	processRequest := func(ctx context.Context) {
-		if userID, ok := ctx.Value(key("userID")).(string); ok {
-			fmt.Printf("用户ID: %s\n", userID)
-		}
-		if requestID, ok := ctx.Value(key("requestID")).(string); ok {
-			fmt.Printf("请求ID: %s\n", requestID)
-		}
-	}
-
-	processRequest(ctx)
-}
-
 // WorkerPool 演示工作池模式
 func WorkerPool() {
 	fmt.Println("=== 工作池模式 ===")
@@ -602,29 +581,6 @@ func SelectDemo() {
 		case msg2 := <-ch2:
 			fmt.Println("收到:", msg2)
 		}
-	}
-}
-
-// NonBlockingSelect 演示非阻塞select
-func NonBlockingSelect() {
-	fmt.Println("=== 非阻塞Select示例 ===")
-
-	ch := make(chan int, 1)
-
-	// 非阻塞发送
-	select {
-	case ch <- 1:
-		fmt.Println("发送成功")
-	default:
-		fmt.Println("发送失败，channel已满")
-	}
-
-	// 非阻塞接收
-	select {
-	case v := <-ch:
-		fmt.Println("接收成功:", v)
-	default:
-		fmt.Println("接收失败，channel为空")
 	}
 }
 
