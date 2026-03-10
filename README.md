@@ -44,6 +44,16 @@
 |------|------|------|------|
 | [generics](./generics) | 泛型函数、泛型类型、类型约束 | ⭐⭐⭐ | [README](./generics/README.md) |
 
+### 高级阶段 - 底层原理
+
+| 模块 | 内容 | 难度 | 文档 |
+|------|------|------|------|
+| [reflect](./reflect) | 反射机制、类型检查、动态调用 | ⭐⭐⭐⭐ | [README](./reflect/README.md) |
+| [unsafe](./unsafe) | unsafe指针、内存操作、零拷贝 | ⭐⭐⭐⭐ | [README](./unsafe/README.md) |
+| [performance](./performance) | 性能优化、逃逸分析、对象池 | ⭐⭐⭐⭐ | [README](./performance/README.md) |
+| [gc](./gc) | 垃圾回收机制、内存管理、逃逸分析 | ⭐⭐⭐⭐ | [README](./gc/README.md) |
+| [memory_model](./memory_model) | 内存模型、数据竞争、同步原语 | ⭐⭐⭐⭐ | [README](./memory_model/README.md) |
+
 ## 快速开始
 
 ### 环境要求
@@ -178,6 +188,11 @@ go-learn/
 ├── switch_case/        # switch模块
 ├── json/               # JSON模块
 ├── init_func/          # init函数模块
+├── reflect/            # 反射模块
+├── unsafe/             # unsafe底层操作模块
+├── performance/        # 性能优化模块
+├── gc/                 # 垃圾回收模块
+├── memory_model/       # 内存模型模块
 ├── go.mod
 └── README.md
 ```
