@@ -54,6 +54,12 @@
 | [gc](./gc) | 垃圾回收机制、内存管理、逃逸分析 | ⭐⭐⭐⭐ | [README](./gc/README.md) |
 | [memory_model](./memory_model) | 内存模型、数据竞争、同步原语 | ⭐⭐⭐⭐ | [README](./memory_model/README.md) |
 
+### 面试必备
+
+| 模块 | 内容 | 难度 | 文档 |
+|------|------|------|------|
+| [interview](./interview) | 基础语法、并发编程、底层原理面试题 | ⭐⭐⭐⭐⭐ | [README](./interview/README.md) |
+
 ## 快速开始
 
 ### 环境要求
@@ -193,6 +199,7 @@ go-learn/
 ├── performance/        # 性能优化模块
 ├── gc/                 # 垃圾回收模块
 ├── memory_model/       # 内存模型模块
+├── interview/          # 面试题模块
 ├── go.mod
 └── README.md
 ```
