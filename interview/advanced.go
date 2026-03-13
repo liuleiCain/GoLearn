@@ -401,15 +401,18 @@ func ClosurePrinciple() {
 	fmt.Printf("外部x: %d\n", x) // x已被修改
 
 	// 循环中的闭包陷阱
-	fmt.Println("\n闭包陷阱:")
+	// 注意：Go 1.22+ 已修复此问题，循环变量每次迭代都会创建新副本
+	// Go 1.22之前版本会打印: i=3, i=3, i=3
+	// Go 1.22+版本会打印: i=0, i=1, i=2
+	fmt.Println("\n闭包陷阱（Go 1.22+已修复）:")
 	var funcs []func()
 	for i := 0; i < 3; i++ {
 		funcs = append(funcs, func() {
-			fmt.Printf("  i=%d\n", i) // 捕获的是变量i，不是值
+			fmt.Printf("  i=%d\n", i) // Go 1.22+每次迭代创建新的i
 		})
 	}
 	for _, f := range funcs {
-		f() // 都打印3
+		f()
 	}
 
 	// 正确做法：传参

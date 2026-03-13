@@ -575,14 +575,14 @@ func main() {
 
 ### 1. 循环变量捕获
 ```go
-// 错误
+// Go 1.22之前版本的问题（Go 1.22+已修复）
 for i := 0; i < 3; i++ {
-    defer fmt.Println(i)  // 输出: 3, 3, 3
+    defer fmt.Println(i)  // Go 1.22之前: 3, 3, 3; Go 1.22+: 2, 1, 0
 }
 
-// 正确
+// 兼容所有版本的写法
 for i := 0; i < 3; i++ {
-    defer func(n int) { fmt.Println(n) }(i)
+    defer func(n int) { fmt.Println(n) }(i)  // 输出: 2, 1, 0
 }
 ```
 
