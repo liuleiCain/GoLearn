@@ -28,7 +28,7 @@ func TestStructInspect(t *testing.T) {
 	}
 }
 
-funcTestMethodCall(t *testing.T) {
+func TestMethodCall(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
