@@ -37,3 +37,21 @@ func TestSliceMemory(t *testing.T) {
 func TestSlicePointer(t *testing.T) {
 	SlicePointer()
 }
+
+func BenchmarkSliceNoPreAlloc(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		s := make([]int, 0)
+		for i := 0; i < 1000000; i++ {
+			s = append(s, i)
+		}
+	}
+}
+
+func BenchmarkSlicePreAlloc(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		s := make([]int, 0, 1000000)
+		for i := 0; i < 1000000; i++ {
+			s = append(s, i)
+		}
+	}
+}
