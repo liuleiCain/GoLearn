@@ -10,7 +10,7 @@ import (
 func WorkerPoolPattern() {
 	fmt.Println("=== Worker Pool模式 ===")
 
-	jobs := make(chan int, 10)
+	jobs := make(chan int, 5)
 	results := make(chan int, 10)
 
 	worker := func(id int, jobs <-chan int, results chan<- int) {
@@ -24,23 +24,21 @@ func WorkerPoolPattern() {
 	numWorkers := 3
 	var wg sync.WaitGroup
 	for w := 1; w <= numWorkers; w++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			worker(id, jobs, results)
-		}(w)
+		wg.Go(func() {
+			worker(w, jobs, results)
+		})
 	}
-
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
 
 	go func() {
 		for j := 1; j <= 10; j++ {
 			jobs <- j
 		}
 		close(jobs)
+	}()
+
+	go func() {
+		wg.Wait()
+		close(results)
 	}()
 
 	for r := range results {
@@ -247,11 +245,9 @@ func CancellationPattern() {
 
 	var wg sync.WaitGroup
 	for i := 1; i <= 3; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			worker(ctx, id)
-		}(i)
+		wg.Go(func() {
+			worker(ctx, i)
+		})
 	}
 
 	time.Sleep(300 * time.Millisecond)
@@ -272,17 +268,15 @@ func SemaphorePattern() {
 		defer func() { <-sem }()
 
 		fmt.Printf("任务 %d: 开始执行\n", id)
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(500 * time.Millisecond)
 		fmt.Printf("任务 %d: 执行完成\n", id)
 	}
 
 	var wg sync.WaitGroup
 	for i := 1; i <= 10; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			task(id)
-		}(i)
+		wg.Go(func() {
+			task(i)
+		})
 	}
 
 	wg.Wait()

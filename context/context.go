@@ -27,10 +27,7 @@ func WithCancelDemo() {
 	defer cancel()
 
 	var wg sync.WaitGroup
-	wg.Add(2)
-
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for i := 0; ; i++ {
 			select {
 			case <-ctx.Done():
@@ -41,10 +38,9 @@ func WithCancelDemo() {
 				time.Sleep(100 * time.Millisecond)
 			}
 		}
-	}()
+	})
 
-	go func() {
-		defer wg.Done()
+	wg.Go(func() {
 		for i := 0; ; i++ {
 			select {
 			case <-ctx.Done():
@@ -55,9 +51,9 @@ func WithCancelDemo() {
 				time.Sleep(150 * time.Millisecond)
 			}
 		}
-	}()
+	})
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 	fmt.Println("主函数: 发送取消信号")
 	cancel()
 
