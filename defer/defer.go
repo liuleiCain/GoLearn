@@ -249,8 +249,8 @@ func DeferNilFunction() {
 	}()
 
 	var fn func()
-	defer fn() // fn是nil，会panic
-	fmt.Println("这行不会执行")
+	defer fn() // fn是nil，panic在这行触发
+	fmt.Println("这行会执行，因为panic还没发生")
 }
 
 // DeferArguments 演示defer参数的计算时机
