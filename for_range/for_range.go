@@ -10,10 +10,10 @@ func AnalysisBasic() {
 	fmt.Println("Start test for range")
 	// go 1.22后支持 遍历数字变量
 	n := 5
-	//for i := range n {
-	//	n = 2
-	//	fmt.Println(i)
-	//}
+	for i := range n {
+		n = 2
+		fmt.Println(i)
+	}
 	fmt.Println("n = ", n)
 
 	// 遍历字符串变量
@@ -45,6 +45,10 @@ func AnalysisSlice() {
 		arr[i] = arr[i] + 100
 		fmt.Println("index=", i, "value=", k)
 	}
+	for i, k := range arr {
+		fmt.Println("index=", i, "value=", k)
+	}
+
 	fmt.Println("arr = ", arr)
 
 	// 改变切片大小
@@ -87,23 +91,21 @@ func AnalysisMap() {
 func AnalysisRangeSliceIndex() {
 	fmt.Println("Start test for range")
 	arr := []int{100, 200, 300}
+
 	var wg sync.WaitGroup
-	wg.Add(len(arr) * 2)
 	for i, k := range arr {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			fmt.Printf("并发---- 第%d次goroutine执行: %d \n", i, k)
-		}()
+		})
 		fmt.Printf("并发---- 第%d次打印: %d  \n", i, k)
 	}
 
 	for i, k := range arr {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			time.Sleep(100 * time.Millisecond)
 			fmt.Println("goroutine-i-k", time.Now(), i, k)
 			fmt.Printf("延时==== 第%d次goroutine执行: %d  \n", i, k)
-		}()
+		})
 		fmt.Println("i-k", time.Now(), i, k)
 		fmt.Printf("延时==== 第%d次打印: %d  \n", i, k)
 	}
@@ -123,14 +125,12 @@ func AnalysisRangeStruct() {
 		{Name: "王五", Age: 22},
 	}
 	var wg sync.WaitGroup
-	wg.Add(len(list))
 	// 改变遍历结构体元素变量的值
 	for i, k := range list {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			k.Age = k.Age + 100
 			fmt.Println("goroutine index=", i, "value=", k)
-		}()
+		})
 		fmt.Println("index=", i, "value=", k)
 	}
 	fmt.Println("list = ", list)
@@ -142,14 +142,12 @@ func AnalysisRangeStruct() {
 		{Name: "李四", Age: 20},
 		{Name: "王五", Age: 22},
 	}
-	wg.Add(len(pointerList))
 	// 改变遍历结构体元素变量的值
 	for i, k := range pointerList {
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			k.Age = k.Age + 100
 			fmt.Println("goroutine index=", i, "value=", *k)
-		}()
+		})
 		fmt.Println("index=", i, "value=", *k)
 	}
 	fmt.Printf("pointerList = %v \n", printList(pointerList))
