@@ -20,6 +20,9 @@
 | GMP调度器详解 | Goroutine调度模型、工作窃取、抢占式调度 | [gmp_scheduler.md](./gmp_scheduler.md) |
 | GC垃圾回收详解 | 三色标记、写屏障、GC调优 | [gc_detail.md](./gc_detail.md) |
 | 内存模型详解 | Happens-Before、数据竞争、同步原语 | [memory_model_detail.md](./memory_model_detail.md) |
+| 内存分配器详解 | 分配器分层、size class、span、逃逸分析 | [allocator_detail.md](./allocator_detail.md) |
+| 栈管理与抢占详解 | goroutine栈增长、栈拷贝、抢占机制 | [stack_detail.md](./stack_detail.md) |
+| 同步原语详解 | Mutex/RWMutex/WaitGroup/Cond/sync.Pool | [sync_primitives_detail.md](./sync_primitives_detail.md) |
 
 ## 基础语法面试题
 
@@ -297,6 +300,30 @@ func GetSingleton() *Singleton {
 - 捕获的是变量本身，不是值
 - 循环中的闭包陷阱（Go 1.22+已修复）
 - 闭包会导致变量逃逸到堆
+
+### 12. Go内存分配器的设计要点？
+
+**答案：**
+- 分层缓存：mcache -> mcentral -> mheap
+- size class + span 降低碎片并加速分配
+- 小对象走缓存，大对象直达堆
+- 与 GC/逃逸分析协作，减少扫描与回收成本
+
+### 13. Goroutine 栈管理与抢占机制？
+
+**答案：**
+- 初始小栈，按需增长
+- 栈拷贝发生在安全点，指针会被修复
+- GC 时可能收缩栈空间
+- 协作式与异步抢占结合，避免长时间独占 CPU
+
+### 14. 同步原语的底层实现思路？
+
+**答案：**
+- Mutex 快速路径使用 CAS，慢路径使用信号量阻塞/唤醒
+- RWMutex 维护读者计数，写者通常具备优先权以避免饥饿
+- WaitGroup/Cond 基于运行时的信号量与通知队列
+- sync.Pool 采用 per-P 缓存与 victim 缓存，GC 可清理
 
 ## 运行测试
 
