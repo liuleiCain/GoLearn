@@ -48,11 +48,13 @@ func WaitGroupDemo() {
 
 func GoroutineLeakDemo() {
 	fmt.Println("=== Goroutine泄漏示例 ===")
+	// 警告：此示例故意演示goroutine泄漏场景
+	// 当超时发生时，内部goroutine会因channel写入阻塞而永远无法退出
 
 	leak := func() <-chan int {
 		ch := make(chan int)
 		go func() {
-			ch <- 42
+			ch <- 42 // 如果接收方超时，这里会永久阻塞
 		}()
 		return ch
 	}
@@ -62,7 +64,7 @@ func GoroutineLeakDemo() {
 	case val := <-ch:
 		fmt.Println("接收到值:", val)
 	case <-time.After(100 * time.Millisecond):
-		fmt.Println("超时，可能导致goroutine泄漏")
+		fmt.Println("超时，可能导致goroutine泄漏（内部goroutine永久阻塞）")
 	}
 }
 
@@ -185,29 +187,25 @@ func RWMutexDemo() {
 
 	// 写操作
 	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			rwmu.Lock()
-			data[fmt.Sprintf("key%d", id)] = id
-			fmt.Printf("写入: key%d = %d\n", id, id)
+			data[fmt.Sprintf("key%d", i)] = i
+			fmt.Printf("写入: key%d = %d\n", i, i)
 			rwmu.Unlock()
-		}(i)
+		})
 	}
 
 	time.Sleep(10 * time.Millisecond)
 
 	// 读操作
 	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			rwmu.RLock()
-			if v, ok := data[fmt.Sprintf("key%d", id)]; ok {
-				fmt.Printf("读取: key%d = %d\n", id, v)
+			if v, ok := data[fmt.Sprintf("key%d", i)]; ok {
+				fmt.Printf("读取: key%d = %d\n", i, v)
 			}
 			rwmu.RUnlock()
-		}(i)
+		})
 	}
 
 	wg.Wait()
@@ -222,11 +220,9 @@ func AtomicDemo() {
 
 	// 使用原子操作
 	for i := 0; i < 1000; i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			atomic.AddInt64(&counter, 1)
-		}()
+		})
 	}
 	wg.Wait()
 	fmt.Printf("原子计数器: %d\n", counter)
@@ -251,20 +247,18 @@ func ContextCancel() {
 
 	// 启动多个worker
 	for i := 1; i <= 3; i++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			for {
 				select {
 				case <-ctx.Done():
-					fmt.Printf("Worker %d: 收到取消信号，退出\n", id)
+					fmt.Printf("Worker %d: 收到取消信号，退出\n", i)
 					return
 				default:
-					fmt.Printf("Worker %d: 工作中...\n", id)
+					fmt.Printf("Worker %d: 工作中...\n", i)
 					time.Sleep(100 * time.Millisecond)
 				}
 			}
-		}(i)
+		})
 	}
 
 	// 主goroutine等待一段时间后取消
@@ -317,11 +311,9 @@ func WorkerPool() {
 
 	var wg sync.WaitGroup
 	for w := 1; w <= 3; w++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
-			worker(id, jobs, results)
-		}(w)
+		wg.Go(func() {
+			worker(w, jobs, results)
+		})
 	}
 
 	// 发送任务
@@ -454,11 +446,11 @@ func FanOutFanIn() {
 		return out
 	}
 
-	// 扇出: 多个worker读取同一输入
-	input := producer(1, 2, 3, 4, 5)
-	c1 := worker("Worker1", input)
-	c2 := worker("Worker2", input)
-	c3 := worker("Worker3", input)
+	// 扇出: 每个worker从独立的输入channel读取相同数据
+	// 注意：如果多个worker从同一个channel读取，数据会被分散处理
+	c1 := worker("Worker1", producer(1, 2, 3, 4, 5))
+	c2 := worker("Worker2", producer(1, 2, 3, 4, 5))
+	c3 := worker("Worker3", producer(1, 2, 3, 4, 5))
 
 	// 扇入: 合并多个输出
 	for result := range merger(c1, c2, c3) {
@@ -605,10 +597,10 @@ func TimerDemo() {
 	stopped := timer2.Stop()
 	fmt.Printf("定时器已停止: %v\n", stopped)
 
-	// 重置定时器
-	timer.Reset(100 * time.Millisecond)
-	<-timer.C
-	fmt.Println("重置后的定时器触发")
+	// 重置定时器（创建新的定时器，而不是重置已触发的）
+	timer3 := time.NewTimer(100 * time.Millisecond)
+	<-timer3.C
+	fmt.Println("新定时器触发")
 }
 
 // TickerDemo 演示定时器周期执行

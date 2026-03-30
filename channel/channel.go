@@ -61,6 +61,7 @@ func ChannelDirection() {
 
 	ch := make(chan int, 3)
 	go sendOnly(ch)
+	time.Sleep(time.Second)
 	receiveOnly(ch)
 }
 
@@ -214,18 +215,18 @@ func WorkerPool() {
 	var wg sync.WaitGroup
 
 	for w := 1; w <= 3; w++ {
-		wg.Add(1)
-		go func(id int) {
-			defer wg.Done()
+		wg.Go(func() {
 			for j := range jobs {
-				fmt.Printf("Worker %d 处理任务 %d\n", id, j)
+				fmt.Printf("Worker %d 处理任务 %d\n", w, j)
 				results <- j * 2
 			}
-		}(w)
+		})
 	}
 
 	for j := 1; j <= 5; j++ {
+		fmt.Println("发送任务：", j)
 		jobs <- j
+		time.Sleep(500 * time.Millisecond)
 	}
 	close(jobs)
 
